@@ -12,3 +12,10 @@ class JobsspiderItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
     pass
+
+
+class JobInfo(scrapy.item):
+    name = scrapy.Field()
+    city = scrapy.Field()
+    year = scrapy.Field()
+    edu = scrapy.Field()

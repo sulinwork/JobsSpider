@@ -2,12 +2,14 @@
 import scrapy
 import re
 from scrapy.http import Request
+from urllib import parse
+from JobsSpider.items import JobInfo
 
 
 class JobspiderSpider(scrapy.Spider):
     name = 'JobSpider'
     allowed_domains = ['www.51job.com', "search.51job.com", "jobs.51job.com"]
-    start_urls = ['https://www.51job.com']
+    start_urls = ['https://search.51job.com/list/00000,000000,0000,00,9,99,java,2,1.html']
 
     list_start_url = "https://search.51job.com/list/00000,000000,0000,00,9,99,java,2,{0}.html"
 
@@ -34,10 +36,6 @@ class JobspiderSpider(scrapy.Spider):
         #         city_code = city_code_match.group(1)
         #         print("name:", city_name, ",code:", city_code)
         #         # 可以往url采集器里面继续扔想要采集的路径
-        list_url = self.list_start_url.format(1)
-        yield Request(url=list_url, callback=self.parse_job_list)
-
-    def parse_job_list(self, response):
         """
         解析岗位列表的数据
         :param response:
@@ -46,21 +44,23 @@ class JobspiderSpider(scrapy.Spider):
         # 抓取数据list 确定详情页面
         detail_urls = response.css("div.el>p.t1>span>a::attr(href)").extract()
         for detail_url in detail_urls:
-            yield Request(url=detail_url, callback=self.parse_detail)
+            # 可能会遇到相对路径 可以转化成绝对路径
+            url = parse.urljoin(response.url, detail_url)
+            # 将爬取的详情url 添加到采集器里  并制定回调函数名称  可以携带自定义参数：mata={}
+            yield Request(url=url, callback=self.parse_detail, meta={})
 
         # 抓取页码
         # next_url = response.css("a#rtNext::attr(href)").extract()
         # if next_url:
-        #     yield Request(url=next_url, callback=self.parse_job_list)
+        #     yield Request(url=next_url, callback=self.parse)
         # else:
         #     print("no have next page")
 
     def parse_detail(self, response):
-        """
-        解析岗位详细信息
-        :param response:
-        :return:
-        """
+        # 实例化对象 像字典一样传值
+        job_info = JobInfo()
+        # 获取传入的参数
+        # param = response.meta.get("key", "默认值")
         job_name = response.css("div.tHeader.tHjob > div > div.cn > h1::text").extract_first("")
         company_name = response.css("div.tHeader.tHjob > div > div.cn>p.cname>a::text").extract_first("")
         job_type = response.css("div.tHeader.tHjob > div > div.cn>p.msg::attr(title)").extract_first("")
@@ -84,4 +84,8 @@ class JobspiderSpider(scrapy.Spider):
             else:
                 time = ""
                 print(job_types[3].strip())
-            print(city, edu, number, time)
+
+        job_info["name"] = job_name
+        print(city, edu, number, time)
+        # 将封装的item对象 传入pipelines 统一做存储管理
+        yield job_info
