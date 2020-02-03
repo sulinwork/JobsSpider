@@ -122,4 +122,4 @@ ITEM_PIPELINES = {
 # 配置 需要爬取的岗位关键字
 job_keys = ['java']
 # 爬取类型 new代表全爬取 update代表只爬取昨天的数据
-job_time_type = 'new'
+job_time_type = 'update'

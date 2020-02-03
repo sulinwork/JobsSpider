@@ -4,7 +4,7 @@ import re
 import datetime
 from scrapy.http import Request
 from urllib import parse
-from JobsSpider.items import JobInfo
+from JobsSpider.items import JobInfoItem
 from JobsSpider.settings import job_keys, job_time_type
 from JobsSpider.spiders.common import compareJobKeyAndName
 
@@ -32,18 +32,18 @@ class JobspiderSpider(scrapy.Spider):
         :return:
         """
         # 抓取数据list 确定详情页面
-        details = response.css("div.el")
+        details = response.css("div#resultList>div.el")
         # 获取关键字
         job_key = response.meta['job_key']
-        for detail in details:
+        for detail in details[1:]:
             # 判断是获取昨天的还是全部
             if job_time_type == "update":
-                time = details.css("span.t5::text").extract_first("")
+                time = detail.css("span.t5::text").extract_first("")
                 time = datetime.datetime.strptime(time, "%m-%d")
                 curr_time = datetime.datetime.now().strftime("%m-%d")
                 curr_time = datetime.datetime.strptime(curr_time, "%m-%d")
-                if (curr_time - time).days != 1:
-                    continue
+                if (curr_time - time).days != 0:
+                    return
             # 获取名称 过滤掉不符合的岗位
             name = detail.css("p.t1>span>a::text").extract_first("")
             if compareJobKeyAndName(job_key.upper(), name.upper())[1] == 0:
@@ -56,11 +56,11 @@ class JobspiderSpider(scrapy.Spider):
             yield Request(url=detail_url, meta={'job_key': job_key}, callback=self.parse_detail)
 
         # 抓取页码
-        # next_url = response.css("a#rtNext::attr(href)").extract()
-        # if next_url:
-        #     yield Request(url=next_url, callback=self.parse)
-        # else:
-        #     print("no have next page")
+        next_url = response.css("a#rtNext::attr(href)").extract_first("")
+        if next_url:
+            yield Request(url=next_url, meta={'job_key': job_key}, callback=self.parse_list)
+        else:
+            print("no have next page")
 
     def parse_detail(self, response):
         """
@@ -69,15 +69,15 @@ class JobspiderSpider(scrapy.Spider):
         :return:
         """
         # 实例化对象 像字典一样传值
-        job_info = JobInfo()
+        job_info_item = JobInfoItem()
         # 获取关键字
         job_key = response.meta['job_key']
-        job_info["key"] = job_key
+        job_info_item["key"] = job_key
         # 获取名称
         name = response.css("div.tHeader.tHjob > div > div.cn > h1::text").extract_first("")
-        job_info["name"] = name
+        job_info_item["name"] = name
         company = response.css("div.tHeader.tHjob > div > div.cn>p.cname>a::text").extract_first("")
-        job_info["company"] = company
+        job_info_item["company"] = company
         job_type = response.css("div.tHeader.tHjob > div > div.cn>p.msg::attr(title)").extract_first("")
         # 提取工作城市
         city_re = re.match("^([\u4e00-\u9fa5]*).*[-,|].*", job_type)
@@ -85,7 +85,7 @@ class JobspiderSpider(scrapy.Spider):
             city = city_re.group(1)
         else:
             city = ""
-        job_info["city"] = city
+        job_info_item["city"] = city
         # 提取工作年限要求
         year_re = re.match(".*?([0-9,-]+年)经验.*|.*(在校生/应届生).*", job_type)
         if year_re:
@@ -95,14 +95,14 @@ class JobspiderSpider(scrapy.Spider):
                     break
         else:
             year = "无"
-        job_info["year"] = year
+        job_info_item["year"] = year
         # 学历要求
         edu_re = re.match(".*(大专|本科|硕士|博士).*", job_type)
         if edu_re:
             edu = edu_re.group(1)
         else:
             edu = "无"
-        job_info["edu"] = edu
+        job_info_item["edu"] = edu
 
         # 招聘人数
         number_re = re.match(".*招([0-9]+)人.*", job_type)
@@ -110,7 +110,7 @@ class JobspiderSpider(scrapy.Spider):
             number = number_re.group(1)
         else:
             number = -1
-        job_info["number"] = number
+        job_info_item["number"] = number
 
         # 发布时间
         time_re = re.match(".*?([0-9]+-[0-9]+)发布.*", job_type)
@@ -118,9 +118,37 @@ class JobspiderSpider(scrapy.Spider):
             time = time_re.group(1)
         else:
             time = ""
-        job_info["time"] = time
+        job_info_item["time"] = time
 
-        # 爬取薪资
+        # 爬取薪资 需要做统一处理
         salary = response.css("div.tHeader.tHjob > div > div.cn > strong::text").extract_first("")
-        print(salary)
-        # yield job_info
+        job_info_item['salary'] = salary
+        # 岗位信息url
+        job_info_item["job_url"] = response.url
+
+        # 职位信息
+        p_list = response.css("div.bmsg.job_msg.inbox>p::text").extract()
+        # if len(p_list) == 0:
+        #     p_list = response.css("div.bmsg.job_msg.inbox>div")
+        #     job_info = ""
+        #     for p in p_list:
+        #         div_class_name = p.css("::attr(class)").extract()
+        #         if len(div_class_name) == 0:
+        #             job_info = job_info + "|" + p.css("::text").extract_first("")
+        #     if len(job_info) > 0:
+        #         job_info = job_info[1:]
+        #     print(job_info)
+        # else:
+        job_info = "|".join(p_list)
+        job_info_item['job_info'] = job_info
+        # 企业领域
+        company_fields = response.css("div.com_tag > p:nth-child(3)>a::text").extract()
+        company_field = "|".join(company_fields)
+        job_info_item['company_field'] = company_field
+        # 企业人数
+        company_size = response.css("div.com_tag > p:nth-child(2)::text").extract_first("")
+        job_info_item['company_size'] = company_size
+        # 企业类型
+        company_type = response.css("div.com_tag > p:nth-child(1)::text").extract_first("")
+        job_info_item['company_type'] = company_type
+        yield job_info_item

@@ -21,7 +21,9 @@ class JobsspiderPipeline(object):
         :param spider:
         :return:
         """
-        line = item.get("name", "null") + "\n"
+        # 字段有int类型会报错
+        # line = "#".join(dict(item).values()) + "\n"
+        line = "#".join('%s' % value for value in dict(item).values()) + "\n"
         self.file.write(line)
         return item
 
@@ -32,7 +34,6 @@ class JobsspiderPipeline(object):
         :return:
         """
         self.file.close()
-
 
 # class JsonExportPipline(object):
 #     # 调用scrapy自带的json_export导出json文件
