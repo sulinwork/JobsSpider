@@ -123,3 +123,5 @@ ITEM_PIPELINES = {
 job_keys = ['java']
 # 爬取类型 new代表全爬取 update代表只爬取昨天的数据
 job_time_type = 'update'
+job_file_name = 'job_infos.txt'
+job_file_dir = 'D:/'

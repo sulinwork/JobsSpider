@@ -8,11 +8,12 @@ import codecs
 import json
 
 from scrapy.exporters import JsonItemExporter
+from JobsSpider.settings import job_file_dir, job_file_name
 
 
 class JobsspiderPipeline(object):
     def __init__(self):
-        self.file = codecs.open('job_infos.txt', 'w', encoding='UTF-8')
+        self.file = codecs.open(job_file_dir + job_file_name, 'w', encoding='UTF-8')
 
     def process_item(self, item, spider):
         """
