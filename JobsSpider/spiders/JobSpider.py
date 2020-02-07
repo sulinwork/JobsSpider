@@ -42,8 +42,10 @@ class JobspiderSpider(scrapy.Spider):
                 time = datetime.datetime.strptime(time, "%m-%d")
                 curr_time = datetime.datetime.now().strftime("%m-%d")
                 curr_time = datetime.datetime.strptime(curr_time, "%m-%d")
-                if (curr_time - time).days != 0:
+                if (curr_time - time).days > 1:
                     return
+                elif (curr_time - time).days <= 0:
+                    continue
             # 获取名称 过滤掉不符合的岗位
             name = detail.css("p.t1>span>a::text").extract_first("")
             if compareJobKeyAndName(job_key.upper(), name.upper())[1] == 0:
