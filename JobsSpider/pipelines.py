@@ -5,15 +5,16 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 import codecs
-import json
-
-from scrapy.exporters import JsonItemExporter
-from JobsSpider.settings import job_file_dir, job_file_name
+import os, shutil, time
+from JobsSpider.settings import job_file_dir
 
 
 class JobsspiderPipeline(object):
     def __init__(self):
-        self.file = codecs.open(job_file_dir + job_file_name, 'w', encoding='UTF-8')
+        job_file_name = time.strftime("%Y%m%d%H%M%S", time.localtime())+".txt"
+        file_dir = job_file_name
+        self.file = codecs.open(file_dir, 'w', encoding='UTF-8')
+        self.file_dir = file_dir
 
     def process_item(self, item, spider):
         """
@@ -35,18 +36,4 @@ class JobsspiderPipeline(object):
         :return:
         """
         self.file.close()
-
-# class JsonExportPipline(object):
-#     # 调用scrapy自带的json_export导出json文件
-#     def __init__(self):
-#         self.file = open('job_info.json', 'wb')
-#         self.exporter = JsonItemExporter(self.file, encoding='UTF-8', ensure_ascii=False)
-#         self.exporter.start_exporting()
-#
-#     def close_spider(self, spider):
-#         self.exporter.finish_exporting()
-#         self.file.close()
-#
-#     def process_item(self, item, spider):
-#         self.exporter.export_item(item)
-#         return item
+        shutil.move(self.file_dir, job_file_dir)
