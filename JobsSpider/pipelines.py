@@ -11,7 +11,7 @@ from JobsSpider.settings import job_file_dir
 
 class JobsspiderPipeline(object):
     def __init__(self):
-        job_file_name = time.strftime("%Y%m%d%H%M%S", time.localtime())+".txt"
+        job_file_name = time.strftime("%Y%m%d%H%M%S", time.localtime()) + ".txt"
         file_dir = job_file_name
         self.file = codecs.open(file_dir, 'w', encoding='UTF-8')
         self.file_dir = file_dir
@@ -24,8 +24,12 @@ class JobsspiderPipeline(object):
         :return:
         """
         # 字段有int类型会报错
-        # line = "#".join(dict(item).values()) + "\n"
-        line = "#".join('%s' % value for value in dict(item).values()) + "\n"
+        # line = "#".join(+dict(item).values()) + "\n"
+        line = item['key'] + "#" + item['name'] + "#" + item['city'] \
+               + "#" + item['year'] + "#" + item['edu'] + "#" + item['number'] \
+               + "#" + item['time'] + "#" + item['salary'] + "#" + item['job_url'] + "#" + item['job_info'] \
+               + "#" + item['company'] + "#" + item['company_field'] + "#" + item['company_size'] + "#" \
+               + item['company_type'] + "\n"
         self.file.write(line)
         return item
 
