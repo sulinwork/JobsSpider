@@ -88,7 +88,7 @@ DOWNLOADER_MIDDLEWARES = {
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 # 指定管道处理 后面数字表示优先级 越小就先执行这个管道
 ITEM_PIPELINES = {
-    'JobsSpider.pipelines.JobsspiderPipeline': 300,
+    'JobsSpider.pipelines.JobsManyFileOutput': 300,
     # 处理Item里面有图片 自动下来 需要下载一个包 pip install pillow
     # 'scrapy.pipelines.images.ImagesPipeline': 100
 }
@@ -120,7 +120,7 @@ ITEM_PIPELINES = {
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 # 配置 需要爬取的岗位关键字
-job_keys = ['java']
+job_keys = ['java', 'python']
 # 爬取类型 new代表全爬取 update代表只爬取昨天的数据
 job_time_type = 'update'
-job_file_dir = 'D:/'
+job_file_dir = 'D:/jobs_tmp'

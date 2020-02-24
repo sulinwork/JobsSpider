@@ -129,6 +129,7 @@ class JobspiderSpider(scrapy.Spider):
         job_info_item["job_url"] = response.url
 
         # 职位信息
+
         p_list = response.css("div.bmsg.job_msg.inbox>p::text").extract()
         # if len(p_list) == 0:
         #     p_list = response.css("div.bmsg.job_msg.inbox>div")

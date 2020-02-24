@@ -1,2 +1,4 @@
-data = {"aa", "bb"}
-print("#".join(data))
+import os, shutil
+
+for file in os.listdir('file/'):
+    shutil.move(os.path.join("file/", file), "D:\\")
