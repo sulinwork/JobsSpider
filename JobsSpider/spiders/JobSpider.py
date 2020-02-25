@@ -5,7 +5,7 @@ import datetime
 from scrapy.http import Request
 from urllib import parse
 from JobsSpider.items import JobInfoItem
-from JobsSpider.settings import job_keys, job_time_type
+from JobsSpider.settings import job_keys
 from JobsSpider.spiders.common import compareJobKeyAndName
 
 
@@ -22,7 +22,7 @@ class JobspiderSpider(scrapy.Spider):
         :param response:
         :return:
         """
-        for job_key in job_keys:
+        for job_key in job_keys.keys():
             yield Request(url=self.url_template.format(job_key), meta={'job_key': job_key}, callback=self.parse_list)
 
     def parse_list(self, response):
@@ -37,7 +37,7 @@ class JobspiderSpider(scrapy.Spider):
         job_key = response.meta['job_key']
         for detail in details[1:]:
             # 判断是获取昨天的还是全部
-            if job_time_type == "update":
+            if job_keys.get(job_key) == "update":
                 time = detail.css("span.t5::text").extract_first("")
                 time = datetime.datetime.strptime(time, "%m-%d")
                 curr_time = datetime.datetime.now().strftime("%m-%d")
