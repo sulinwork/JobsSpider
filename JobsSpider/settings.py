@@ -120,5 +120,7 @@ ITEM_PIPELINES = {
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 # 爬取类型 new代表全爬取 update代表只爬取昨天的数据
 # 配置 需要爬取的岗位关键字
-job_keys = {'java': 'update', 'python': 'update'}
+# job_keys = {'java': 'update', 'python': 'update', '大数据': 'new', 'UI': 'update', 'web': 'update',
+#             '软件工程师': 'update', '行政': 'update', '平面设计': 'update', "运营": "new", "产品": "new"}
+job_keys = {'python': "update"}
 job_file_dir = 'D:/jobs_tmp'

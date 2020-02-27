@@ -2,8 +2,10 @@
 import scrapy
 import re
 import datetime
+import codecs
+import json
+import os
 from scrapy.http import Request
-from urllib import parse
 from JobsSpider.items import JobInfoItem
 from JobsSpider.settings import job_keys
 from JobsSpider.spiders.common import compareJobKeyAndName
@@ -15,6 +17,16 @@ class JobspiderSpider(scrapy.Spider):
     start_urls = ['https://www.51job.com']
 
     url_template = "https://search.51job.com/list/00000,000000,0000,00,9,99,{0},2,1.html?ord_field=1"
+
+    def __init__(self):
+        path = os.path.dirname(os.path.dirname(__file__)) + "/record.txt"
+        if not os.path.exists(path):
+            with codecs.open(path, 'w', encoding="UTF-8") as f:
+                f.close()
+        try:
+            self.record = json.load(codecs.open(path, "r", encoding="UTF-8"))
+        except BaseException:
+            self.record = {}
 
     def parse(self, response):
         """
@@ -38,13 +50,13 @@ class JobspiderSpider(scrapy.Spider):
         for detail in details[1:]:
             # 判断是获取昨天的还是全部
             if job_keys.get(job_key) == "update":
-                time = detail.css("span.t5::text").extract_first("")
-                time = datetime.datetime.strptime(time, "%m-%d")
-                curr_time = datetime.datetime.now().strftime("%m-%d")
-                curr_time = datetime.datetime.strptime(curr_time, "%m-%d")
-                if (curr_time - time).days > 1:
+                time_str = detail.css("span.t5::text").extract_first("")
+                curr_time = datetime.datetime.strptime(time_str, "%m-%d")
+                record_time = datetime.datetime.strptime(self.record[job_key], "%m-%d")
+                now_time = datetime.datetime.strptime(datetime.datetime.now().strftime("%m-%d"), "%m-%d")
+                if (curr_time - record_time).days <= 0:
                     return
-                elif (curr_time - time).days <= 0:
+                elif (curr_time - now_time).days == 0:
                     continue
             # 获取名称 过滤掉不符合的岗位
             name = detail.css("p.t1>span>a::text").extract_first("")

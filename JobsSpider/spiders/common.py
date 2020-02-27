@@ -1,3 +1,9 @@
+from JobsSpider.settings import job_keys
+import datetime
+import codecs
+import json
+
+
 def compareJobKeyAndName(key, name):
     """
     比较岗位和关键字 做过滤
@@ -23,3 +29,23 @@ def compareJobKeyAndName(key, name):
                     # 记录最大匹配长度的终止位置
                     p = i + 1
     return key[p - maxNum:p], maxNum
+
+
+def saveFileUpdateRecordFile():
+    record_dict = job_keys.copy()
+    for k in job_keys.keys():
+        if job_keys[k] == "new":
+            record_dict[k] = datetime.datetime.now().strftime("%m-%d")
+        if job_keys[k] == "update":
+            curr_time = getYesterday().strftime("%m-%d")
+            record_dict[k] = curr_time
+
+    with codecs.open("../record.txt", "w", encoding="utf-8") as f:
+        f.write(json.dumps(record_dict, ensure_ascii=False))
+
+def getYesterday():
+    today = datetime.date.today()
+    oneday = datetime.timedelta(days=1)
+    yesterday = today - oneday
+    return yesterday
+

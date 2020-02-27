@@ -7,6 +7,7 @@
 import codecs
 import os, shutil, time
 from JobsSpider.settings import job_file_dir
+from JobsSpider.spiders.common import saveFileUpdateRecordFile
 
 
 class JobsspiderPipeline(object):
@@ -83,3 +84,4 @@ class JobsManyFileOutput(object):
         # 文件移动
         for file_name in os.listdir('file/'):
             shutil.move(os.path.join(self.base_path, file_name), job_file_dir)
+        saveFileUpdateRecordFile()

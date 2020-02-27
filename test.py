@@ -1,4 +1,4 @@
-import os, shutil
+import json
 
-for file in os.listdir('file/'):
-    shutil.move(os.path.join("file/", file), "D:\\")
+a = json.load('{"python": "02-24"}')
+print(a)
