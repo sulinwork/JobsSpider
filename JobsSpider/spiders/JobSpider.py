@@ -3,12 +3,12 @@ import scrapy
 import re
 import datetime
 import codecs
-import json
+import ast
 import os
 from scrapy.http import Request
 from JobsSpider.items import JobInfoItem
 from JobsSpider.settings import job_keys
-from JobsSpider.spiders.common import compareJobKeyAndName
+from JobsSpider.spiders.common import compareJobKeyAndName, completion_date
 
 
 class JobspiderSpider(scrapy.Spider):
@@ -24,9 +24,15 @@ class JobspiderSpider(scrapy.Spider):
             with codecs.open(path, 'w', encoding="UTF-8") as f:
                 f.close()
         try:
-            self.record = json.load(codecs.open(path, "r", encoding="UTF-8"))
-        except BaseException:
+            with open(path, 'r', encoding="UTF-8") as f:
+                self.record = ast.literal_eval(f.read())
+        except BaseException as e:
             self.record = {}
+        # try:
+        #     line = open(path, "r")
+        #     self.record = json.load(line)
+        # except BaseException as e:
+        #     self.record = {}
 
     def parse(self, response):
         """
@@ -51,9 +57,9 @@ class JobspiderSpider(scrapy.Spider):
             # 判断是获取昨天的还是全部
             if job_keys.get(job_key) == "update":
                 time_str = detail.css("span.t5::text").extract_first("")
-                curr_time = datetime.datetime.strptime(time_str, "%m-%d")
-                record_time = datetime.datetime.strptime(self.record[job_key], "%m-%d")
-                now_time = datetime.datetime.strptime(datetime.datetime.now().strftime("%m-%d"), "%m-%d")
+                curr_time = datetime.datetime.strptime(completion_date(time_str), "%Y-%m-%d")
+                record_time = datetime.datetime.strptime(completion_date(self.record[job_key]), "%Y-%m-%d")
+                now_time = datetime.datetime.strptime(datetime.datetime.now().strftime("%Y-%m-%d"), "%Y-%m-%d")
                 if (curr_time - record_time).days <= 0:
                     return
                 elif (curr_time - now_time).days == 0:

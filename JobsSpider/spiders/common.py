@@ -1,7 +1,7 @@
 from JobsSpider.settings import job_keys
 import datetime
 import codecs
-import json
+import json, os
 
 
 def compareJobKeyAndName(key, name):
@@ -39,9 +39,13 @@ def saveFileUpdateRecordFile():
         if job_keys[k] == "update":
             curr_time = getYesterday().strftime("%m-%d")
             record_dict[k] = curr_time
+    path = os.path.dirname(os.path.dirname(__file__)) + "/record.txt"
+    print(path)
+    with codecs.open(path, "w", encoding="utf-8") as f:
+        data = json.dumps(record_dict, ensure_ascii=False)
+        print(data)
+        f.write(data)
 
-    with codecs.open("../record.txt", "w", encoding="utf-8") as f:
-        f.write(json.dumps(record_dict, ensure_ascii=False))
 
 def getYesterday():
     today = datetime.date.today()
@@ -49,3 +53,17 @@ def getYesterday():
     yesterday = today - oneday
     return yesterday
 
+
+def completion_date(text_time):
+    """
+    补全日期
+    :param text_time:
+    :return:
+    """
+    time_str = str(datetime.datetime.now().year) + "-" + text_time
+    curr_time = datetime.datetime.strptime(time_str, "%Y-%m-%d")
+    now_time = datetime.datetime.now()
+    if (now_time - curr_time).days < 0:
+        return str(datetime.datetime.now().year - 1) + "-" + text_time
+    else:
+        return time_str
