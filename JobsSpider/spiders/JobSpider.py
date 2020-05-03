@@ -62,7 +62,7 @@ class JobspiderSpider(scrapy.Spider):
                 now_time = datetime.datetime.strptime(datetime.datetime.now().strftime("%Y-%m-%d"), "%Y-%m-%d")
                 if (curr_time - record_time).days <= 0:
                     return
-                elif (curr_time - now_time).days == 0:
+                elif (curr_time - now_time).days > 0:
                     continue
             # 获取名称 过滤掉不符合的岗位
             name = detail.css("p.t1>span>a::text").extract_first("")
@@ -149,17 +149,6 @@ class JobspiderSpider(scrapy.Spider):
         # 职位信息
 
         p_list = response.css("div.bmsg.job_msg.inbox>p::text").extract()
-        # if len(p_list) == 0:
-        #     p_list = response.css("div.bmsg.job_msg.inbox>div")
-        #     job_info = ""
-        #     for p in p_list:
-        #         div_class_name = p.css("::attr(class)").extract()
-        #         if len(div_class_name) == 0:
-        #             job_info = job_info + "|" + p.css("::text").extract_first("")
-        #     if len(job_info) > 0:
-        #         job_info = job_info[1:]
-        #     print(job_info)
-        # else:
         job_info = "|".join(p_list)
         job_info_item['job_info'] = job_info
         # 企业领域
